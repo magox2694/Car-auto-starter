@@ -4,12 +4,13 @@ import android.content.Intent
 import androidx.media3.common.C
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
-import androidx.media3.session.MediaSessionService
+import androidx.media3.session.MediaLibraryService
+import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 
-class PlaybackService : MediaSessionService() {
+class PlaybackService : MediaLibraryService() {
 
     private var player: ExoPlayer? = null
-    private var mediaSession: MediaSession? = null
+    private var mediaLibrarySession: MediaLibrarySession? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -20,7 +21,11 @@ class PlaybackService : MediaSessionService() {
             .build()
 
         player = exoPlayer
-        mediaSession = MediaSession.Builder(this, exoPlayer)
+        mediaLibrarySession = MediaLibrarySession.Builder(
+            this,
+            exoPlayer,
+            object : MediaLibrarySession.Callback {}
+        )
             .setId("carbeats-session")
             .build()
     }
@@ -44,8 +49,8 @@ class PlaybackService : MediaSessionService() {
         return START_STICKY
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
-        return mediaSession
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {
+        return mediaLibrarySession
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
@@ -55,11 +60,11 @@ class PlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
-        mediaSession?.run {
+        mediaLibrarySession?.run {
             player.release()
             release()
         }
-        mediaSession = null
+        mediaLibrarySession = null
         player = null
         super.onDestroy()
     }
