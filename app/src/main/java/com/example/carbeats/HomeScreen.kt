@@ -11,8 +11,40 @@ import androidx.car.app.model.Template
 
 class HomeScreen(carContext: CarContext) : Screen(carContext) {
 
+    private val quickQueries = listOf("Night", "Acoustic", "CarBeats")
+
+    @Suppress("DEPRECATION")
     override fun onGetTemplate(): Template {
-        val itemList = ItemList.Builder()
+        val listBuilder = ItemList.Builder()
+            .addItem(
+                Row.Builder()
+                    .setTitle("Ricerca rapida in auto")
+                    .addText("Apri risultati demo per una query predefinita")
+                    .build()
+            )
+            .addItem(
+                Row.Builder()
+                    .setTitle("Ricerca libera")
+                    .addText("Scrivi una query direttamente da Android Auto")
+                    .setOnClickListener {
+                        screenManager.push(CarSearchScreen(carContext))
+                    }
+                    .build()
+            )
+
+        quickQueries.forEach { query ->
+            listBuilder.addItem(
+                Row.Builder()
+                    .setTitle("Cerca: $query")
+                    .addText("Mostra risultati audio demo")
+                    .setOnClickListener {
+                        screenManager.push(CarSearchResultsScreen(carContext, query))
+                    }
+                    .build()
+            )
+        }
+
+        val itemList = listBuilder
             .addItem(
                 Row.Builder()
                     .setTitle("CarBeats - Novita motori")

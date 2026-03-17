@@ -12,6 +12,7 @@ class PlaceDetailScreen(
     private val description: String
 ) : Screen(carContext) {
 
+    @Suppress("DEPRECATION")
     override fun onGetTemplate(): Template {
         return MessageTemplate.Builder(description)
             .setTitle(title)

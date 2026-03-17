@@ -85,6 +85,10 @@ object AudioCatalog {
         return if (index >= 0) index else 0
     }
 
+    fun indexByMediaId(mediaId: String): Int {
+        return tracks.indexOfFirst { it.mediaId == mediaId }
+    }
+
     fun toMediaItem(track: Track): MediaItem {
         val metadata = MediaMetadata.Builder()
             .setTitle(track.title)

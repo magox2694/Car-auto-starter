@@ -7,7 +7,13 @@ class SearchRepository(
         if (query.isBlank()) return emptyList()
 
         return providers
-            .flatMap { it.search(query) }
+            .flatMap { provider ->
+                try {
+                    provider.search(query)
+                } catch (_: Exception) {
+                    emptyList()
+                }
+            }
             .distinctBy { "${it.source}:${it.id}" }
             .take(10)
     }

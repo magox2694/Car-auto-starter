@@ -30,6 +30,7 @@ class PlaybackService : MediaSessionService() {
             ACTION_PLAY_SAMPLE -> playSample()
             ACTION_PLAY_DEMO_PLAYLIST -> playDemoPlaylist()
             ACTION_PLAY_QUERY -> playByQuery(intent.getStringExtra(EXTRA_QUERY))
+            ACTION_PLAY_MEDIA_ID -> playByMediaId(intent.getStringExtra(EXTRA_MEDIA_ID))
             ACTION_NEXT -> player?.seekToNextMediaItem()
             ACTION_PREVIOUS -> player?.seekToPreviousMediaItem()
             ACTION_PAUSE -> player?.pause()
@@ -86,15 +87,27 @@ class PlaybackService : MediaSessionService() {
         exoPlayer.play()
     }
 
+    private fun playByMediaId(mediaId: String?) {
+        val exoPlayer = player ?: return
+        val id = mediaId ?: return
+        val startIndex = AudioCatalog.indexByMediaId(id)
+        if (startIndex < 0) return
+        exoPlayer.setMediaItems(AudioCatalog.demoPlaylist(), startIndex, 0L)
+        exoPlayer.prepare()
+        exoPlayer.play()
+    }
+
     companion object {
         const val ACTION_PLAY_SAMPLE = "com.example.carbeats.action.PLAY_SAMPLE"
         const val ACTION_PLAY_DEMO_PLAYLIST = "com.example.carbeats.action.PLAY_DEMO_PLAYLIST"
         const val ACTION_PLAY_QUERY = "com.example.carbeats.action.PLAY_QUERY"
+        const val ACTION_PLAY_MEDIA_ID = "com.example.carbeats.action.PLAY_MEDIA_ID"
         const val ACTION_NEXT = "com.example.carbeats.action.NEXT"
         const val ACTION_PREVIOUS = "com.example.carbeats.action.PREVIOUS"
         const val ACTION_PAUSE = "com.example.carbeats.action.PAUSE"
         const val ACTION_RESUME = "com.example.carbeats.action.RESUME"
         const val ACTION_STOP = "com.example.carbeats.action.STOP"
         const val EXTRA_QUERY = "extra_query"
+        const val EXTRA_MEDIA_ID = "extra_media_id"
     }
 }

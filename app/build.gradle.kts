@@ -7,12 +7,17 @@ android {
     namespace = "com.example.carbeats"
     compileSdk = 35
 
+    val youtubeApiKey = ((project.findProperty("YOUTUBE_API_KEY") as String?) ?: "")
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+
     defaultConfig {
         applicationId = "com.example.carbeats"
         minSdk = 23
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+        buildConfigField("String", "YOUTUBE_API_KEY", "\"$youtubeApiKey\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

@@ -11,6 +11,7 @@ costruita con Android for Cars App Library e orientata alla fruizione audio in a
 - schermata dettaglio con MessageTemplate
 - MainActivity companion sul telefono con ricerca demo e controlli playlist (play, prev, next, pausa, riprendi, stop)
 - PlaybackService con Media3 ExoPlayer + MediaSessionService
+- ricerca rapida e ricerca libera lato Android Auto con risultati demo e play da lista
 - manifest configurato per categoria MEDIA Android Auto
 
 ## Obiettivo
@@ -55,11 +56,12 @@ Prima della pubblicazione devi:
 
 1. Avvia l'app sul telefono
 2. Cerca un brano demo (es: Night o Acoustic) e premi Cerca e riproduci
-3. Oppure premi Riproduci playlist demo
-4. Usa Brano precedente e Brano successivo per testare la coda
-5. Verifica riproduzione in background uscendo dall'app
-6. Controlla notifica media e lockscreen
-7. Verifica i pulsanti Pausa, Riprendi e Stop
+3. Scegli un numero risultato e premi Riproduci risultato selezionato
+4. Oppure premi Riproduci playlist demo
+5. Usa Brano precedente e Brano successivo per testare la coda
+6. Verifica riproduzione in background uscendo dall'app
+7. Controlla notifica media e lockscreen
+8. Verifica i pulsanti Pausa, Riprendi e Stop
 
 ### Test con DHU su Windows
 
@@ -77,6 +79,8 @@ Nota: telefono + DHU coprono quasi tutto il ciclo sviluppo. Il test in auto real
 - app/src/main/java/com/example/carbeats/MyCarSession.kt
 - app/src/main/java/com/example/carbeats/HomeScreen.kt
 - app/src/main/java/com/example/carbeats/PlaceDetailScreen.kt
+- app/src/main/java/com/example/carbeats/CarSearchScreen.kt
+- app/src/main/java/com/example/carbeats/CarSearchResultsScreen.kt
 - app/src/main/java/com/example/carbeats/MainActivity.kt
 - app/src/main/java/com/example/carbeats/PlaybackService.kt
 - app/src/main/java/com/example/carbeats/AudioCatalog.kt
@@ -90,10 +94,19 @@ Ricerca metadata YouTube e possibile con YouTube Data API v3 (API key, quote e r
 Streaming audio o estrazione da YouTube per riproduzione diretta richiede diritti/licenze e conformita ai termini della piattaforma.
 Per un'app pubblicabile e stabile, usa catalogo e stream di cui possiedi i diritti o provider ufficialmente licenziati.
 
-In questa base progetto:
-1. provider YouTube e solo placeholder
-2. ricerca e playback funzionano su catalogo demo locale
-3. integrazione API ufficiale metadata va aggiunta con chiave e gestione quota/errori
+Aggiornamento corrente:
+1. provider YouTube metadata attivo con endpoint ufficiale v3
+2. risultati YouTube sono metadata-only (non riproducibili in questa demo)
+3. playback diretto disponibile solo per sorgente demo locale
+
+### Configurazione chiave API YouTube
+
+1. genera una API key per YouTube Data API v3 su Google Cloud
+2. aggiungi in gradle.properties (locale):
+
+YOUTUBE_API_KEY=la_tua_chiave
+
+3. sincronizza Gradle e riavvia l'app
 
 ## Personalizzazioni rapide
 
