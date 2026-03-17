@@ -1,0 +1,44 @@
+# CarAutoStarter
+
+Progetto base Android Studio in Kotlin per una **app Android Auto ufficiale** costruita con la **Android for Cars App Library**.
+
+## Cosa include
+- `CarAppService`
+- `Session`
+- `Screen` iniziale con `ListTemplate`
+- schermata dettaglio con `PaneTemplate`
+- `MainActivity` companion sul telefono
+- manifest già configurato per Android Auto
+- categoria attuale: **POI** (Point of Interest)
+
+## Nota importante
+Questo progetto è un **template dimostrativo**. Prima della pubblicazione devi:
+1. scegliere una categoria car supportata coerente con la tua app
+2. sostituire dati demo e branding
+3. testare con Android Auto / DHU
+4. completare i requisiti qualità Play per le app in auto
+
+## Come aprirlo
+1. Apri Android Studio
+2. `Open` → seleziona questa cartella
+3. Lascia che Android Studio sincronizzi Gradle
+4. Se Android Studio ti propone di aggiornare AGP/Kotlin, puoi accettare
+5. Esegui su telefono o usa i tool di test Android Auto
+
+## Test Android Auto
+- attiva Developer Mode in Android Auto
+- collega il telefono
+- verifica che l'app compaia nel launcher di Android Auto
+- in alternativa usa il Desktop Head Unit / emulatori
+
+## File principali
+- `app/src/main/java/com/example/carautostarter/MyCarAppService.kt`
+- `app/src/main/java/com/example/carautostarter/MyCarSession.kt`
+- `app/src/main/java/com/example/carautostarter/HomeScreen.kt`
+- `app/src/main/java/com/example/carautostarter/PlaceDetailScreen.kt`
+
+## Personalizzazioni rapide
+- nome app: `res/values/strings.xml`
+- colore tema: `res/values/themes.xml`
+- categoria Android Auto: `AndroidManifest.xml`
+- righe demo della lista: `HomeScreen.kt`
