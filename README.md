@@ -58,3 +58,11 @@ In pratica: base tecnica pronta, ma il prodotto non è ancora completo per la pu
 3. completare UX e flussi consentiti in auto/parcheggio
 4. testare su Android Auto reale e/o Desktop Head Unit (DHU)
 5. hardening pre-release (host validation, quality checklist Play)
+
+## YouTube su Android Auto: stato reale
+Se l'obiettivo è "player video YouTube sul display dell'auto", è importante chiarire che **Android Auto non supporta la riproduzione video di YouTube su schermo auto durante la guida**.
+
+Questo template è stato quindi impostato come **companion sicuro**:
+- UI in auto: solo messaggi informativi conformi alle regole di sicurezza
+- riproduzione video: demandata al telefono
+- azioni sensibili: disponibili solo da fermo (parked-only)
