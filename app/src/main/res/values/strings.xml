@@ -1,5 +1,16 @@
 <resources>
-    <string name="app_name">CarTube</string>
-    <string name="car_home_title">CarTube su Android Auto</string>
-    <string name="phone_companion_text">Questa è la companion app di CarTube sul telefono.\n\nApri Android Auto per vedere la parte car.</string>
+    <string name="app_name">CarBeats</string>
+    <string name="car_home_title">CarBeats su Android Auto</string>
+    <string name="phone_companion_text">Companion app CarBeats. Usa questi controlli per testare il
+        player in background anche senza auto.</string>
+    <string name="search_hint">Cerca brano demo (es: Night, Acoustic)</string>
+    <string name="search_and_play">Cerca e riproduci</string>
+    <string name="search_no_results">Nessun risultato trovato.</string>
+    <string name="play_playlist_demo">Riproduci playlist demo</string>
+    <string name="play_sample">Riproduci sample</string>
+    <string name="previous_track">Brano precedente</string>
+    <string name="next_track">Brano successivo</string>
+    <string name="pause_audio">Pausa</string>
+    <string name="resume_audio">Riprendi</string>
+    <string name="stop_audio">Stop</string>
 </resources>

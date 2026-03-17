@@ -1,4 +1,4 @@
-package com.example.carautostarter
+package com.example.carbeats
 
 import androidx.car.app.CarContext
 import androidx.car.app.Screen
