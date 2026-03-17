@@ -15,14 +15,14 @@ class HomeScreen(carContext: CarContext) : Screen(carContext) {
         val itemList = ItemList.Builder()
             .addItem(
                 Row.Builder()
-                    .setTitle("YouTube su Android Auto")
+                    .setTitle("YouTube: limiti su Android Auto")
                     .addText("La riproduzione video sul display auto non è supportata")
                     .setOnClickListener {
                         screenManager.push(
                             PlaceDetailScreen(
                                 carContext = carContext,
                                 title = "Limite piattaforma",
-                                description = "Android Auto non consente player video YouTube sullo schermo dell'auto. Usa il telefono per la visione."
+                                description = "Android Auto non consente il player video YouTube sullo schermo dell'auto. Usa il telefono per la visione."
                             )
                         )
                     }
