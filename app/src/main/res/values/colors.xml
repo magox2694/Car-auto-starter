@@ -3,6 +3,17 @@
     <color name="purple_80">#D0BCFF</color>
     <color name="pink_40">#7D5260</color>
     <color name="pink_80">#EFB8C8</color>
+
+    <color name="premium_primary">#2B2A3D</color>
+    <color name="premium_secondary">#6D5A3D</color>
+    <color name="premium_accent">#A88D5F</color>
+    <color name="premium_surface">#FFFDFC</color>
+    <color name="premium_stroke">#D7CCB6</color>
+    <color name="premium_input_bg">#F8F3EA</color>
+    <color name="premium_text_primary">#1E1A14</color>
+    <color name="premium_text_secondary">#62584A</color>
+    <color name="premium_danger">#8E4A4A</color>
+
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
 </resources>

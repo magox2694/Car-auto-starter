@@ -3,14 +3,17 @@ package com.example.carbeats
 import android.content.Intent
 import androidx.media3.common.C
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaLibraryService
-import androidx.media3.session.MediaLibraryService.MediaLibrarySession
+import androidx.media3.session.MediaSession
+
+private typealias LibrarySession = MediaLibraryService.MediaLibrarySession
+private typealias LibrarySessionBuilder = MediaLibraryService.MediaLibrarySession.Builder
+private typealias LibrarySessionCallback = MediaLibraryService.MediaLibrarySession.Callback
 
 class PlaybackService : MediaLibraryService() {
 
     private var player: ExoPlayer? = null
-    private var mediaLibrarySession: MediaLibrarySession? = null
+    private var mediaLibrarySession: LibrarySession? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -21,16 +24,18 @@ class PlaybackService : MediaLibraryService() {
             .build()
 
         player = exoPlayer
-        mediaLibrarySession = MediaLibrarySession.Builder(
+        mediaLibrarySession = LibrarySessionBuilder(
             this,
             exoPlayer,
-            object : MediaLibrarySession.Callback {}
+            object : LibrarySessionCallback {}
         )
             .setId("carbeats-session")
             .build()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val superResult = super.onStartCommand(intent, flags, startId)
+
         when (intent?.action) {
             ACTION_PLAY_SAMPLE -> playSample()
             ACTION_PLAY_DEMO_PLAYLIST -> playDemoPlaylist()
@@ -39,17 +44,18 @@ class PlaybackService : MediaLibraryService() {
             ACTION_NEXT -> player?.seekToNextMediaItem()
             ACTION_PREVIOUS -> player?.seekToPreviousMediaItem()
             ACTION_PAUSE -> player?.pause()
-            ACTION_RESUME -> if (player?.mediaItemCount ?: 0 > 0) player?.play()
+            ACTION_RESUME -> if ((player?.mediaItemCount ?: 0) > 0) player?.play()
             ACTION_STOP -> {
                 player?.stop()
                 stopSelf()
             }
+            else -> return superResult
         }
 
         return START_STICKY
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): LibrarySession? {
         return mediaLibrarySession
     }
 
