@@ -15,14 +15,14 @@ class HomeScreen(carContext: CarContext) : Screen(carContext) {
         val itemList = ItemList.Builder()
             .addItem(
                 Row.Builder()
-                    .setTitle("Veterinario di zona")
-                    .addText("Esempio POI • Tap per dettagli")
+                    .setTitle("CarTube • Novità motori")
+                    .addText("Video: test drive e anteprime")
                     .setOnClickListener {
                         screenManager.push(
                             PlaceDetailScreen(
                                 carContext = carContext,
-                                title = "Veterinario di zona",
-                                description = "Qui puoi mostrare dettagli, indirizzo, orari o azioni."
+                                title = "Novità motori",
+                                description = "Le ultime uscite dal mondo auto, raccontate in formato video."
                             )
                         )
                     }
@@ -30,14 +30,14 @@ class HomeScreen(carContext: CarContext) : Screen(carContext) {
             )
             .addItem(
                 Row.Builder()
-                    .setTitle("Farmacia aperta")
-                    .addText("Esempio demo • Tap per dettagli")
+                    .setTitle("CarTube • Tutorial")
+                    .addText("Video: guida e consigli pratici")
                     .setOnClickListener {
                         screenManager.push(
                             PlaceDetailScreen(
                                 carContext = carContext,
-                                title = "Farmacia aperta",
-                                description = "Questo starter è pensato come base da personalizzare."
+                                title = "Tutorial",
+                                description = "Contenuti utili su manutenzione, sicurezza e funzioni dell'auto."
                             )
                         )
                     }
@@ -45,14 +45,14 @@ class HomeScreen(carContext: CarContext) : Screen(carContext) {
             )
             .addItem(
                 Row.Builder()
-                    .setTitle("Info sicurezza")
+                    .setTitle("CarTube • Playlist parcheggio")
                     .addText("Azione consentita solo da fermo")
                     .setOnClickListener(ParkedOnlyOnClickListener.create {
                         screenManager.push(
                             PlaceDetailScreen(
                                 carContext = carContext,
-                                title = "Sicurezza",
-                                description = "Qui puoi inserire schermate disponibili solo a veicolo fermo."
+                                title = "Playlist parcheggio",
+                                description = "Contenuti disponibili solo a veicolo fermo per rispettare la sicurezza."
                             )
                         )
                     })
