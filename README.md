@@ -31,6 +31,11 @@ Questo progetto è un **template dimostrativo**. Prima della pubblicazione devi:
 - verifica che l'app compaia nel launcher di Android Auto
 - in alternativa usa il Desktop Head Unit / emulatori
 
+## Dove trovi l'app
+- **Sul telefono**: cerca l'icona **CarTube** nel launcher Android (apre la companion app).
+- **Su Android Auto**: apri il launcher di Android Auto e cerca **CarTube** tra le app auto supportate.
+- Se non compare subito su Android Auto, scollega/ricollega il telefono e verifica che Android Auto sia aggiornato.
+
 ## File principali
 - `app/src/main/java/com/example/carautostarter/MyCarAppService.kt`
 - `app/src/main/java/com/example/carautostarter/MyCarSession.kt`
