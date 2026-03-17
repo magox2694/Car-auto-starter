@@ -15,7 +15,7 @@ class HomeScreen(carContext: CarContext) : Screen(carContext) {
         val itemList = ItemList.Builder()
             .addItem(
                 Row.Builder()
-                    .setTitle("CarTube • Novità motori")
+                    .setTitle("CarTube - Novità motori")
                     .addText("Video: test drive e anteprime")
                     .setOnClickListener {
                         screenManager.push(
@@ -30,7 +30,7 @@ class HomeScreen(carContext: CarContext) : Screen(carContext) {
             )
             .addItem(
                 Row.Builder()
-                    .setTitle("CarTube • Tutorial")
+                    .setTitle("CarTube - Tutorial")
                     .addText("Video: guida e consigli pratici")
                     .setOnClickListener {
                         screenManager.push(
@@ -45,7 +45,7 @@ class HomeScreen(carContext: CarContext) : Screen(carContext) {
             )
             .addItem(
                 Row.Builder()
-                    .setTitle("CarTube • Playlist parcheggio")
+                    .setTitle("CarTube - Playlist parcheggio")
                     .addText("Azione consentita solo da fermo")
                     .setOnClickListener(ParkedOnlyOnClickListener.create {
                         screenManager.push(
