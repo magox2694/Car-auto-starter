@@ -15,14 +15,14 @@ class HomeScreen(carContext: CarContext) : Screen(carContext) {
         val itemList = ItemList.Builder()
             .addItem(
                 Row.Builder()
-                    .setTitle("CarTube - Novità motori")
-                    .addText("Video: test drive e anteprime")
+                    .setTitle("YouTube: limiti su Android Auto")
+                    .addText("La riproduzione video sul display auto non è supportata")
                     .setOnClickListener {
                         screenManager.push(
                             PlaceDetailScreen(
                                 carContext = carContext,
-                                title = "Novità motori",
-                                description = "Le ultime uscite dal mondo auto, raccontate in formato video."
+                                title = "Limite piattaforma",
+                                description = "Android Auto non consente il player video YouTube sullo schermo dell'auto. Usa il telefono per la visione."
                             )
                         )
                     }
@@ -30,14 +30,14 @@ class HomeScreen(carContext: CarContext) : Screen(carContext) {
             )
             .addItem(
                 Row.Builder()
-                    .setTitle("CarTube - Tutorial")
-                    .addText("Video: guida e consigli pratici")
+                    .setTitle("Contenuti consentiti in auto")
+                    .addText("In auto mostra solo informazioni sicure e conformi")
                     .setOnClickListener {
                         screenManager.push(
                             PlaceDetailScreen(
                                 carContext = carContext,
-                                title = "Tutorial",
-                                description = "Contenuti utili su manutenzione, sicurezza e funzioni dell'auto."
+                                title = "Sicurezza",
+                                description = "Per rispettare i requisiti Android Auto, il video deve restare sul telefono e non sul display dell'auto."
                             )
                         )
                     }
@@ -45,14 +45,14 @@ class HomeScreen(carContext: CarContext) : Screen(carContext) {
             )
             .addItem(
                 Row.Builder()
-                    .setTitle("CarTube - Playlist parcheggio")
-                    .addText("Azione consentita solo da fermo")
+                    .setTitle("Uso da fermo")
+                    .addText("Quando sei parcheggiato puoi passare al telefono")
                     .setOnClickListener(ParkedOnlyOnClickListener.create {
                         screenManager.push(
                             PlaceDetailScreen(
                                 carContext = carContext,
-                                title = "Playlist parcheggio",
-                                description = "Contenuti disponibili solo a veicolo fermo per rispettare la sicurezza."
+                                title = "Parcheggio",
+                                description = "Da fermo puoi continuare su smartphone per aprire e riprodurre YouTube."
                             )
                         )
                     })

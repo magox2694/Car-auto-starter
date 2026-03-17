@@ -31,6 +31,11 @@ Questo progetto è un **template dimostrativo**. Prima della pubblicazione devi:
 - verifica che l'app compaia nel launcher di Android Auto
 - in alternativa usa il Desktop Head Unit / emulatori
 
+## Dove trovi l'app
+- **Sul telefono**: cerca l'icona **CarTube** nel launcher Android (apre la companion app).
+- **Su Android Auto**: apri il launcher di Android Auto e cerca **CarTube** tra le app auto supportate.
+- Se non compare subito su Android Auto, scollega/ricollega il telefono e verifica che Android Auto sia aggiornato.
+
 ## File principali
 - `app/src/main/java/com/example/carautostarter/MyCarAppService.kt`
 - `app/src/main/java/com/example/carautostarter/MyCarSession.kt`
@@ -42,3 +47,27 @@ Questo progetto è un **template dimostrativo**. Prima della pubblicazione devi:
 - colore tema: `res/values/themes.xml`
 - categoria Android Auto: `AndroidManifest.xml`
 - righe demo della lista: `HomeScreen.kt`
+
+## Stato attuale dell'app
+Al momento l'app è un **template funzionante** per Android Auto:
+- avvio servizio car (`CarAppService`) e sessione (`Session`) configurati
+- schermata home con lista contenuti demo
+- schermata dettaglio con messaggio informativo
+- companion app base su telefono
+
+In pratica: base tecnica pronta, ma il prodotto non è ancora completo per la pubblicazione.
+
+## Roadmap MVP (prossimi passi)
+1. definire categoria finale Android Auto coerente col caso d'uso
+2. sostituire contenuti demo con dati reali (locale o backend)
+3. completare UX e flussi consentiti in auto/parcheggio
+4. testare su Android Auto reale e/o Desktop Head Unit (DHU)
+5. hardening pre-release (host validation, quality checklist Play)
+
+## YouTube su Android Auto: stato reale
+Se l'obiettivo è "player video YouTube sul display dell'auto", è importante chiarire che **Android Auto non supporta la riproduzione video di YouTube su schermo auto durante la guida**.
+
+Questo template è stato quindi impostato come **companion sicuro**:
+- UI in auto: solo messaggi informativi conformi alle regole di sicurezza
+- riproduzione video: demandata al telefono
+- azioni sensibili: disponibili solo da fermo (parked-only)
