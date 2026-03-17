@@ -6,7 +6,8 @@ import androidx.car.app.model.Action
 import androidx.car.app.model.MessageTemplate
 import androidx.car.app.model.Template
 
-class PlaceDetailScreen(
+// Schermata di dettaglio per un elemento video, ispirata all'approccio di CarTube.
+class VideoDetailScreen(
     carContext: CarContext,
     private val title: String,
     private val description: String

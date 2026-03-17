@@ -9,20 +9,22 @@ import androidx.car.app.model.ParkedOnlyOnClickListener
 import androidx.car.app.model.Row
 import androidx.car.app.model.Template
 
+// Ispirato a CarTube: un client video non ufficiale per Android Auto
+// che permette la navigazione di YouTube dall'head unit dell'auto.
 class HomeScreen(carContext: CarContext) : Screen(carContext) {
 
     override fun onGetTemplate(): Template {
         val itemList = ItemList.Builder()
             .addItem(
                 Row.Builder()
-                    .setTitle("Veterinario di zona")
-                    .addText("Esempio POI • Tap per dettagli")
+                    .setTitle("Video popolari")
+                    .addText("Esplora i video di tendenza • Tap per dettagli")
                     .setOnClickListener {
                         screenManager.push(
-                            PlaceDetailScreen(
+                            VideoDetailScreen(
                                 carContext = carContext,
-                                title = "Veterinario di zona",
-                                description = "Qui puoi mostrare dettagli, indirizzo, orari o azioni."
+                                title = "Video popolari",
+                                description = "Qui puoi mostrare la lista dei video di tendenza. Integra le API del tuo servizio video per popolare questa schermata dinamicamente."
                             )
                         )
                     }
@@ -30,14 +32,14 @@ class HomeScreen(carContext: CarContext) : Screen(carContext) {
             )
             .addItem(
                 Row.Builder()
-                    .setTitle("Farmacia aperta")
-                    .addText("Esempio demo • Tap per dettagli")
+                    .setTitle("Le mie playlist")
+                    .addText("Playlist personali • Tap per dettagli")
                     .setOnClickListener {
                         screenManager.push(
-                            PlaceDetailScreen(
+                            VideoDetailScreen(
                                 carContext = carContext,
-                                title = "Farmacia aperta",
-                                description = "Questo starter è pensato come base da personalizzare."
+                                title = "Le mie playlist",
+                                description = "Mostra le playlist dell'utente autenticato. Puoi integrare OAuth2 per accedere all'account del tuo servizio video."
                             )
                         )
                     }
@@ -45,14 +47,14 @@ class HomeScreen(carContext: CarContext) : Screen(carContext) {
             )
             .addItem(
                 Row.Builder()
-                    .setTitle("Info sicurezza")
-                    .addText("Azione consentita solo da fermo")
+                    .setTitle("Impostazioni")
+                    .addText("Qualità video e preferenze • Solo da fermo")
                     .setOnClickListener(ParkedOnlyOnClickListener.create {
                         screenManager.push(
-                            PlaceDetailScreen(
+                            VideoDetailScreen(
                                 carContext = carContext,
-                                title = "Sicurezza",
-                                description = "Qui puoi inserire schermate disponibili solo a veicolo fermo."
+                                title = "Impostazioni",
+                                description = "Le impostazioni sono disponibili solo a veicolo fermo per motivi di sicurezza. Qui puoi configurare qualità video, account e preferenze."
                             )
                         )
                     })
