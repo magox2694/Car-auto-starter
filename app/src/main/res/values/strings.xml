@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Car Auto Starter</string>
-    <string name="car_home_title">Starter Android Auto</string>
-    <string name="phone_companion_text">Questa è la companion app sul telefono.\n\nApri Android Auto per vedere la parte car.</string>
+    <string name="app_name">CarTube</string>
+    <string name="car_home_title">CarTube su Android Auto</string>
+    <string name="phone_companion_text">Questa è la companion app di CarTube sul telefono.\n\nApri Android Auto per vedere la parte car.</string>
 </resources>

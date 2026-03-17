@@ -1,6 +1,6 @@
-# CarAutoStarter
+# CarTube
 
-Progetto base Android Studio in Kotlin per una **app Android Auto ufficiale** costruita con la **Android for Cars App Library**.
+Progetto base Android Studio in Kotlin per una **app Android Auto ufficiale** costruita con la **Android for Cars App Library**, personalizzata in stile **CarTube**.
 
 ## Cosa include
 - `CarAppService`
