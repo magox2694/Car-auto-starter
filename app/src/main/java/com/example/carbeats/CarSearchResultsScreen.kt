@@ -8,29 +8,42 @@ import androidx.car.app.model.ItemList
 import androidx.car.app.model.ListTemplate
 import androidx.car.app.model.Row
 import androidx.car.app.model.Template
-import com.example.carbeats.search.DemoTrackSearchProvider
+import com.example.carbeats.search.SearchRepository
+import com.example.carbeats.search.TrackSearchResult
+import java.util.concurrent.Executors
 
 class CarSearchResultsScreen(
     carContext: CarContext,
     private val query: String
 ) : Screen(carContext) {
 
-    private val searchProvider = DemoTrackSearchProvider()
+    private val searchRepository = SearchRepository.default()
+    private val searchExecutor = Executors.newSingleThreadExecutor()
+    private var hasRequestedSearch = false
+    private var isLoading = false
+    private var results: List<TrackSearchResult> = emptyList()
 
     @Suppress("DEPRECATION")
     override fun onGetTemplate(): Template {
-        val matches = searchProvider.search(query)
+        maybeStartSearch()
         val listBuilder = ItemList.Builder()
 
-        if (matches.isEmpty()) {
+        if (isLoading) {
+            listBuilder.addItem(
+                Row.Builder()
+                    .setTitle("Ricerca in corso")
+                    .addText("Sto cercando: $query")
+                    .build()
+            )
+        } else if (results.isEmpty()) {
             listBuilder.addItem(
                 Row.Builder()
                     .setTitle("Nessun risultato")
-                    .addText("Nessun brano demo trovato per: $query")
+                    .addText("Nessun brano trovato per: $query")
                     .build()
             )
         } else {
-            matches.forEach { item ->
+            results.forEach { item ->
                 listBuilder.addItem(
                     Row.Builder()
                         .setTitle(item.title)
@@ -61,5 +74,21 @@ class CarSearchResultsScreen(
             .setSingleList(listBuilder.build())
             .setHeaderAction(Action.BACK)
             .build()
+    }
+
+    private fun maybeStartSearch() {
+        if (hasRequestedSearch || query.isBlank()) return
+
+        hasRequestedSearch = true
+        isLoading = true
+
+        searchExecutor.execute {
+            val loaded = searchRepository.search(query).take(10)
+            carContext.mainExecutor.execute {
+                results = loaded
+                isLoading = false
+                invalidate()
+            }
+        }
     }
 }
