@@ -2,14 +2,24 @@ package com.example.carbeats.search
 
 import com.example.carbeats.BuildConfig
 import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
 import java.net.URLEncoder
 
 class YouTubeMetadataProvider : TrackSearchProvider {
-    override fun search(query: String): List<TrackSearchResult> {
+    override val providerName: String = "YouTube"
+
+    override fun search(query: String): ProviderSearchResult {
         val apiKey = BuildConfig.YOUTUBE_API_KEY
-        if (apiKey.isBlank()) return emptyList()
+        if (apiKey.isBlank()) {
+            return ProviderSearchResult(
+                items = emptyList(),
+                status = SearchProviderStatus(
+                    providerName = providerName,
+                    state = SearchProviderState.DISABLED,
+                    resultCount = 0,
+                    message = "Chiave API non configurata"
+                )
+            )
+        }
 
         val encodedQuery = URLEncoder.encode(query, Charsets.UTF_8.name())
         val endpoint =
@@ -21,68 +31,70 @@ class YouTubeMetadataProvider : TrackSearchProvider {
                 "&maxResults=12" +
                 "&q=$encodedQuery" +
                 "&key=$apiKey"
+        val body = SearchHttpClient.get(endpoint)
+        val json = JSONObject(body)
+        val items = json.optJSONArray("items")
+            ?: return ProviderSearchResult(
+                items = emptyList(),
+                status = SearchProviderStatus(providerName, SearchProviderState.EMPTY, 0)
+            )
 
-        val connection = (URL(endpoint).openConnection() as HttpURLConnection).apply {
-            requestMethod = "GET"
-            connectTimeout = 10_000
-            readTimeout = 10_000
+        val candidateIds = mutableListOf<String>()
+        for (i in 0 until items.length()) {
+            val item = items.optJSONObject(i) ?: continue
+            val idObject = item.optJSONObject("id") ?: continue
+            val videoId = idObject.optString("videoId")
+            if (videoId.isNotBlank()) {
+                candidateIds.add(videoId)
+            }
         }
 
-        return try {
-            val code = connection.responseCode
-            if (code !in 200..299) return emptyList()
+        val allowedIds = loadEmbeddableIds(candidateIds, apiKey)
+        if (allowedIds.isEmpty()) {
+            return ProviderSearchResult(
+                items = emptyList(),
+                status = SearchProviderStatus(providerName, SearchProviderState.EMPTY, 0)
+            )
+        }
 
-            val body = connection.inputStream.bufferedReader().use { it.readText() }
-            val json = JSONObject(body)
-            val items = json.optJSONArray("items") ?: return emptyList()
+        val results = mutableListOf<TrackSearchResult>()
 
-            val candidateIds = mutableListOf<String>()
-            for (i in 0 until items.length()) {
-                val item = items.optJSONObject(i) ?: continue
-                val idObject = item.optJSONObject("id") ?: continue
-                val videoId = idObject.optString("videoId")
-                if (videoId.isNotBlank()) {
-                    candidateIds.add(videoId)
-                }
-            }
+        for (i in 0 until items.length()) {
+            val item = items.optJSONObject(i) ?: continue
+            val idObject = item.optJSONObject("id") ?: continue
+            val videoId = idObject.optString("videoId")
+            if (videoId.isBlank()) continue
+            if (!allowedIds.contains(videoId)) continue
 
-            val allowedIds = loadEmbeddableIds(candidateIds, apiKey)
-            if (allowedIds.isEmpty()) return emptyList()
+            val snippet = item.optJSONObject("snippet") ?: continue
+            val title = snippet.optString("title", "Unknown")
+            val channel = snippet.optString("channelTitle", "YouTube")
+            val thumbnails = snippet.optJSONObject("thumbnails")
+            val artworkUrl =
+                thumbnails?.optJSONObject("medium")?.optString("url")
+                    ?: thumbnails?.optJSONObject("default")?.optString("url")
 
-            val results = mutableListOf<TrackSearchResult>()
-
-            for (i in 0 until items.length()) {
-                val item = items.optJSONObject(i) ?: continue
-                val idObject = item.optJSONObject("id") ?: continue
-                val videoId = idObject.optString("videoId")
-                if (videoId.isBlank()) continue
-                if (!allowedIds.contains(videoId)) continue
-
-                val snippet = item.optJSONObject("snippet") ?: continue
-                val title = snippet.optString("title", "Unknown")
-                val channel = snippet.optString("channelTitle", "YouTube")
-                val thumbnails = snippet.optJSONObject("thumbnails")
-                val artworkUrl =
-                    thumbnails?.optJSONObject("medium")?.optString("url")
-                        ?: thumbnails?.optJSONObject("default")?.optString("url")
-
-                results.add(
-                    TrackSearchResult(
-                        id = videoId,
-                        title = title,
-                        artist = channel,
-                        album = "YouTube",
-                        source = "youtube",
-                        playable = true,
-                        artworkUrl = artworkUrl
-                    )
+            results.add(
+                TrackSearchResult(
+                    id = videoId,
+                    title = title,
+                    artist = channel,
+                    album = "YouTube",
+                    source = "youtube",
+                    playable = false,
+                    artworkUrl = artworkUrl
                 )
-            }
-
-            results
-        } finally {
-            connection.disconnect()
+            )
         }
+
+        return ProviderSearchResult(
+            items = results,
+            status = SearchProviderStatus(
+                providerName = providerName,
+                state = if (results.isEmpty()) SearchProviderState.EMPTY else SearchProviderState.SUCCESS,
+                resultCount = results.size
+            )
+        )
     }
 
     private fun loadEmbeddableIds(videoIds: List<String>, apiKey: String): Set<String> {
@@ -94,63 +106,49 @@ class YouTubeMetadataProvider : TrackSearchProvider {
                 "?part=status" +
                 "&id=$ids" +
                 "&key=$apiKey"
+        val body = SearchHttpClient.get(endpoint)
+        val json = JSONObject(body)
+        val items = json.optJSONArray("items") ?: return emptySet()
+        val allowed = mutableSetOf<String>()
 
-        val connection = (URL(endpoint).openConnection() as HttpURLConnection).apply {
-            requestMethod = "GET"
-            connectTimeout = 10_000
-            readTimeout = 10_000
-        }
+        for (i in 0 until items.length()) {
+            val item = items.optJSONObject(i) ?: continue
+            val id = item.optString("id")
+            if (id.isBlank()) continue
 
-        return try {
-            val code = connection.responseCode
-            if (code !in 200..299) return emptySet()
+            val status = item.optJSONObject("status") ?: continue
+            if (!status.optBoolean("embeddable", false)) continue
 
-            val body = connection.inputStream.bufferedReader().use { it.readText() }
-            val json = JSONObject(body)
-            val items = json.optJSONArray("items") ?: return emptySet()
-            val allowed = mutableSetOf<String>()
-
-            for (i in 0 until items.length()) {
-                val item = items.optJSONObject(i) ?: continue
-                val id = item.optString("id")
-                if (id.isBlank()) continue
-
-                val status = item.optJSONObject("status") ?: continue
-                if (!status.optBoolean("embeddable", false)) continue
-
-                val regionRestriction = status.optJSONObject("regionRestriction")
-                if (regionRestriction != null) {
-                    val blocked = regionRestriction.optJSONArray("blocked")
-                    if (blocked != null) {
-                        var blockedInItaly = false
-                        for (j in 0 until blocked.length()) {
-                            if (blocked.optString(j).equals("IT", ignoreCase = true)) {
-                                blockedInItaly = true
-                                break
-                            }
+            val regionRestriction = status.optJSONObject("regionRestriction")
+            if (regionRestriction != null) {
+                val blocked = regionRestriction.optJSONArray("blocked")
+                if (blocked != null) {
+                    var blockedInItaly = false
+                    for (j in 0 until blocked.length()) {
+                        if (blocked.optString(j).equals("IT", ignoreCase = true)) {
+                            blockedInItaly = true
+                            break
                         }
-                        if (blockedInItaly) continue
                     }
-
-                    val allowedRegions = regionRestriction.optJSONArray("allowed")
-                    if (allowedRegions != null && allowedRegions.length() > 0) {
-                        var italyAllowed = false
-                        for (j in 0 until allowedRegions.length()) {
-                            if (allowedRegions.optString(j).equals("IT", ignoreCase = true)) {
-                                italyAllowed = true
-                                break
-                            }
-                        }
-                        if (!italyAllowed) continue
-                    }
+                    if (blockedInItaly) continue
                 }
 
-                allowed.add(id)
+                val allowedRegions = regionRestriction.optJSONArray("allowed")
+                if (allowedRegions != null && allowedRegions.length() > 0) {
+                    var italyAllowed = false
+                    for (j in 0 until allowedRegions.length()) {
+                        if (allowedRegions.optString(j).equals("IT", ignoreCase = true)) {
+                            italyAllowed = true
+                            break
+                        }
+                    }
+                    if (!italyAllowed) continue
+                }
             }
 
-            allowed
-        } finally {
-            connection.disconnect()
+            allowed.add(id)
         }
+
+        return allowed
     }
 }

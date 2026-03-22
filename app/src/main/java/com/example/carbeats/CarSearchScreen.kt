@@ -9,16 +9,17 @@ import androidx.car.app.model.Row
 import androidx.car.app.model.SearchTemplate
 import androidx.car.app.model.Template
 import com.example.carbeats.search.SearchRepository
+import com.example.carbeats.search.SearchResponse
 import com.example.carbeats.search.TrackSearchResult
-import java.util.concurrent.Executors
 
 class CarSearchScreen(carContext: CarContext) : Screen(carContext) {
 
     private val searchRepository = SearchRepository.default()
-    private val searchExecutor = Executors.newSingleThreadExecutor()
     private var currentQuery: String = ""
     private var results: List<TrackSearchResult> = emptyList()
     private var isLoading: Boolean = false
+    private var latestSearchToken: Int = 0
+    private var statusMessage: String? = null
 
     override fun onGetTemplate(): Template {
         val itemListBuilder = ItemList.Builder()
@@ -38,13 +39,30 @@ class CarSearchScreen(carContext: CarContext) : Screen(carContext) {
                     .build()
             )
         } else if (results.isEmpty()) {
-            itemListBuilder.addItem(
-                Row.Builder()
-                    .setTitle("Nessun risultato")
-                    .addText("Nessun brano trovato per: $currentQuery")
-                    .build()
-            )
+            if (!statusMessage.isNullOrBlank()) {
+                itemListBuilder.addItem(
+                    Row.Builder()
+                        .setTitle(statusMessage!!)
+                        .addText("Controlla connessione e provider disponibili")
+                        .build()
+                )
+            } else {
+                itemListBuilder.addItem(
+                    Row.Builder()
+                        .setTitle("Nessun risultato")
+                        .addText("Nessun brano trovato per: $currentQuery")
+                        .build()
+                )
+            }
         } else {
+            if (!statusMessage.isNullOrBlank()) {
+                itemListBuilder.addItem(
+                    Row.Builder()
+                        .setTitle(statusMessage!!)
+                        .addText("Controlla connessione e provider disponibili")
+                        .build()
+                )
+            }
             results.forEach { item ->
                 itemListBuilder.addItem(
                     Row.Builder()
@@ -89,17 +107,19 @@ class CarSearchScreen(carContext: CarContext) : Screen(carContext) {
         return SearchTemplate.Builder(
             object : SearchTemplate.SearchCallback {
                 override fun onSearchTextChanged(searchText: String) {
-                    currentQuery = searchText
+                    currentQuery = searchText.trim()
                     if (searchText.isBlank()) {
+                        latestSearchToken += 1
                         results = emptyList()
                         isLoading = false
+                        statusMessage = null
                     }
                     invalidate()
                 }
 
                 override fun onSearchSubmitted(searchText: String) {
-                    currentQuery = searchText
-                    performSearch(searchText)
+                    currentQuery = searchText.trim()
+                    performSearch(currentQuery)
                 }
             }
         )
@@ -119,17 +139,36 @@ class CarSearchScreen(carContext: CarContext) : Screen(carContext) {
 
         isLoading = true
         results = emptyList()
+        statusMessage = null
         invalidate()
+        val searchToken = ++latestSearchToken
 
-        searchExecutor.execute {
-            val loaded = searchRepository.search(query).take(10)
+        SearchExecutors.io.execute {
+            val response = searchRepository.searchDetails(query)
             carContext.mainExecutor.execute {
-                if (currentQuery == query) {
-                    results = loaded
+                if (latestSearchToken == searchToken && currentQuery == query) {
+                    results = response.results.take(10)
                     isLoading = false
+                    statusMessage = buildStatusMessage(response)
                     invalidate()
                 }
             }
+        }
+    }
+
+    private fun buildStatusMessage(response: SearchResponse): String? {
+        if (response.results.isNotEmpty()) {
+            return if (response.unavailableProviderCount > 0) {
+                "Alcuni provider non sono disponibili ora"
+            } else {
+                null
+            }
+        }
+
+        return when {
+            response.hasProviderErrors -> "Provider temporaneamente non raggiungibili"
+            response.hasDisabledProviders -> "Provider opzionali non configurati"
+            else -> null
         }
     }
 }

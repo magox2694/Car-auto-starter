@@ -66,6 +66,7 @@ dependencies {
     implementation("androidx.media3:media3-session:$media3Version")
     implementation("androidx.media3:media3-ui:$media3Version")
     implementation("com.google.guava:guava:33.2.1-android")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     implementation("io.coil-kt:coil:2.7.0")
 }

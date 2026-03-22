@@ -1,5 +1,7 @@
 package com.example.carbeats.search
 
 interface TrackSearchProvider {
-    fun search(query: String): List<TrackSearchResult>
+    val providerName: String
+
+    fun search(query: String): ProviderSearchResult
 }

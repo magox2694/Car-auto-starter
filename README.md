@@ -27,7 +27,7 @@ CarBeats e una base per un'app media audio-first:
 
 Il progetto include una base funzionante di playback audio in background.
 La companion app avvia un sample audio remoto, consente ricerca demo locale e controlla il player via servizio media.
-La ricerca usa un repository a provider multipli (demo attivo, YouTube metadata placeholder).
+La ricerca usa un repository a provider multipli con cache in memoria, validazione URL, client HTTP dedicato e diagnostica provider esplicita.
 
 Prima della pubblicazione devi:
 
@@ -96,8 +96,9 @@ Per un'app pubblicabile e stabile, usa catalogo e stream di cui possiedi i dirit
 
 Aggiornamento corrente:
 1. provider YouTube metadata attivo con endpoint ufficiale v3
-2. risultati YouTube sono metadata-only (non riproducibili in questa demo)
-3. playback diretto disponibile solo per sorgente demo locale
+2. risultati YouTube sono metadata-only sia su telefono sia su Android Auto
+3. playback diretto disponibile solo per sorgenti stream validate http/https
+4. la ricerca distingue tra nessun risultato, provider non raggiungibile e provider non configurato
 
 ### Configurazione chiave API YouTube
 

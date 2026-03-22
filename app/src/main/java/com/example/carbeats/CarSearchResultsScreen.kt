@@ -9,8 +9,8 @@ import androidx.car.app.model.ListTemplate
 import androidx.car.app.model.Row
 import androidx.car.app.model.Template
 import com.example.carbeats.search.SearchRepository
+import com.example.carbeats.search.SearchResponse
 import com.example.carbeats.search.TrackSearchResult
-import java.util.concurrent.Executors
 
 class CarSearchResultsScreen(
     carContext: CarContext,
@@ -18,10 +18,11 @@ class CarSearchResultsScreen(
 ) : Screen(carContext) {
 
     private val searchRepository = SearchRepository.default()
-    private val searchExecutor = Executors.newSingleThreadExecutor()
     private var hasRequestedSearch = false
     private var isLoading = false
     private var results: List<TrackSearchResult> = emptyList()
+    private var latestSearchToken = 0
+    private var statusMessage: String? = null
 
     @Suppress("DEPRECATION")
     override fun onGetTemplate(): Template {
@@ -36,13 +37,30 @@ class CarSearchResultsScreen(
                     .build()
             )
         } else if (results.isEmpty()) {
-            listBuilder.addItem(
-                Row.Builder()
-                    .setTitle("Nessun risultato")
-                    .addText("Nessun brano trovato per: $query")
-                    .build()
-            )
+            if (!statusMessage.isNullOrBlank()) {
+                listBuilder.addItem(
+                    Row.Builder()
+                        .setTitle(statusMessage!!)
+                        .addText("I risultati visibili potrebbero essere parziali")
+                        .build()
+                )
+            } else {
+                listBuilder.addItem(
+                    Row.Builder()
+                        .setTitle("Nessun risultato")
+                        .addText("Nessun brano trovato per: $query")
+                        .build()
+                )
+            }
         } else {
+            if (!statusMessage.isNullOrBlank()) {
+                listBuilder.addItem(
+                    Row.Builder()
+                        .setTitle(statusMessage!!)
+                        .addText("I risultati visibili potrebbero essere parziali")
+                        .build()
+                )
+            }
             results.forEach { item ->
                 listBuilder.addItem(
                     Row.Builder()
@@ -96,14 +114,34 @@ class CarSearchResultsScreen(
 
         hasRequestedSearch = true
         isLoading = true
+        val searchToken = ++latestSearchToken
 
-        searchExecutor.execute {
-            val loaded = searchRepository.search(query).take(10)
+        SearchExecutors.io.execute {
+            val response = searchRepository.searchDetails(query)
             carContext.mainExecutor.execute {
-                results = loaded
-                isLoading = false
-                invalidate()
+                if (latestSearchToken == searchToken) {
+                    results = response.results.take(10)
+                    isLoading = false
+                    statusMessage = buildStatusMessage(response)
+                    invalidate()
+                }
             }
+        }
+    }
+
+    private fun buildStatusMessage(response: SearchResponse): String? {
+        if (response.results.isNotEmpty()) {
+            return if (response.unavailableProviderCount > 0) {
+                "Alcuni provider non sono disponibili ora"
+            } else {
+                null
+            }
+        }
+
+        return when {
+            response.hasProviderErrors -> "Provider temporaneamente non raggiungibili"
+            response.hasDisabledProviders -> "Provider opzionali non configurati"
+            else -> null
         }
     }
 }

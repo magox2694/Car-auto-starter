@@ -1,43 +1,36 @@
 package com.example.carbeats
 
 import android.os.Bundle
-import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.core.content.IntentCompat
+import androidx.core.os.BundleCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
-import android.webkit.WebChromeClient
-import android.webkit.JavascriptInterface
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import com.example.carbeats.search.TrackSearchResult
+import coil.load
 
 class PlayerActivity : ComponentActivity() {
 
     private var exoPlayer: ExoPlayer? = null
-    private var youtubeWebView: WebView? = null
     private lateinit var suggestedAdapter: TrackResultsAdapter
     private var suggestedTracks: List<TrackSearchResult> = emptyList()
     private var selectedTrack: TrackSearchResult? = null
     private var currentTrack: TrackSearchResult? = null
-    private var isYoutubeMode = false
-    private val blockedYoutubeIds = mutableSetOf<String>()
+    private var playbackPosition = 0L
+    private var shouldAutoPlay = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_player)
 
         val playerView = findViewById<PlayerView>(R.id.playerView)
-        val webView = findViewById<WebView>(R.id.youtubeWebView)
-        youtubeWebView = webView
         val artwork = findViewById<ImageView>(R.id.playerArtwork)
         val title = findViewById<TextView>(R.id.playerTitle)
         val subtitle = findViewById<TextView>(R.id.playerSubtitle)
@@ -46,13 +39,20 @@ class PlayerActivity : ComponentActivity() {
         val backButton = findViewById<com.google.android.material.button.MaterialButton>(R.id.playerBackButton)
         val forwardButton = findViewById<com.google.android.material.button.MaterialButton>(R.id.playerForwardButton)
 
-        selectedTrack = IntentCompat.getParcelableExtra(
+        playbackPosition = savedInstanceState?.getLong(STATE_PLAYBACK_POSITION) ?: 0L
+        shouldAutoPlay = savedInstanceState?.getBoolean(STATE_PLAY_WHEN_READY) ?: true
+        currentTrack = savedInstanceState?.let {
+            BundleCompat.getParcelable(it, STATE_CURRENT_TRACK, TrackSearchResult::class.java)
+        }
+        selectedTrack = currentTrack ?: IntentCompat.getParcelableExtra(
             intent,
             EXTRA_SELECTED_TRACK,
             TrackSearchResult::class.java
         )
 
-        val suggestedTracks = IntentCompat.getParcelableArrayListExtra(
+        val suggestedTracks = savedInstanceState?.let {
+            BundleCompat.getParcelableArrayList(it, STATE_SUGGESTED_TRACKS, TrackSearchResult::class.java)
+        } ?: IntentCompat.getParcelableArrayListExtra(
             intent,
             EXTRA_SUGGESTED_TRACKS,
             TrackSearchResult::class.java
@@ -60,8 +60,8 @@ class PlayerActivity : ComponentActivity() {
         this.suggestedTracks = suggestedTracks
 
         suggestedAdapter = TrackResultsAdapter { track ->
-            playTrack(track)
             bindHeader(track)
+            playTrack(track, 0L, true)
         }
 
         suggestedRecycler.layoutManager = LinearLayoutManager(this)
@@ -72,42 +72,24 @@ class PlayerActivity : ComponentActivity() {
             playerView.player = player
         }
 
-        webView.settings.javaScriptEnabled = true
-        webView.settings.domStorageEnabled = true
-        webView.settings.mediaPlaybackRequiresUserGesture = false
-        webView.addJavascriptInterface(YouTubeEmbedBridge(), "AndroidBridge")
-        webView.webChromeClient = WebChromeClient()
-        webView.webViewClient = WebViewClient()
-
         playPauseButton.setOnClickListener {
-            if (isYoutubeMode) {
-                sendYoutubeCommand("togglePlayPause")
-            } else {
-                val player = exoPlayer ?: return@setOnClickListener
-                if (player.isPlaying) player.pause() else player.play()
-            }
+            val player = exoPlayer ?: return@setOnClickListener
+            if (player.isPlaying) player.pause() else player.play()
         }
         backButton.setOnClickListener {
-            if (isYoutubeMode) {
-                sendYoutubeCommand("seekRelative", -10)
-            } else {
-                val player = exoPlayer ?: return@setOnClickListener
-                player.seekTo((player.currentPosition - 10_000L).coerceAtLeast(0L))
-            }
+            val player = exoPlayer ?: return@setOnClickListener
+            player.seekTo((player.currentPosition - 10_000L).coerceAtLeast(0L))
         }
         forwardButton.setOnClickListener {
-            if (isYoutubeMode) {
-                sendYoutubeCommand("seekRelative", 10)
-            } else {
-                val player = exoPlayer ?: return@setOnClickListener
-                player.seekTo(player.currentPosition + 10_000L)
-            }
+            val player = exoPlayer ?: return@setOnClickListener
+            player.seekTo(player.currentPosition + 10_000L)
         }
 
-        val initial = selectedTrack ?: suggestedTracks.firstOrNull()
+        val initial = currentTrack ?: selectedTrack ?: suggestedTracks.firstOrNull { it.playable }
+            ?: suggestedTracks.firstOrNull()
         if (initial != null) {
             bindHeader(initial)
-            playTrack(initial)
+            playTrack(initial, playbackPosition, shouldAutoPlay)
         }
 
         artwork.load(initial?.artworkUrl) {
@@ -134,29 +116,23 @@ class PlayerActivity : ComponentActivity() {
     }
 
     private fun playTrack(track: TrackSearchResult) {
+        playTrack(track, 0L, true)
+    }
+
+    private fun playTrack(track: TrackSearchResult, startPositionMs: Long, autoplay: Boolean) {
         currentTrack = track
 
-        val playerView = findViewById<PlayerView>(R.id.playerView)
-        val webView = youtubeWebView ?: return
-
-        if (track.source == "youtube") {
-            isYoutubeMode = true
-            exoPlayer?.pause()
-            playerView.visibility = View.GONE
-            webView.visibility = View.VISIBLE
-            loadYoutubeVideo(track.id)
+        val url = StreamUrlValidator.normalizeHttpUrl(track.streamUrl)
+        if (!track.playable || url == null) {
+            exoPlayer?.run {
+                stop()
+                clearMediaItems()
+            }
+            playbackPosition = 0L
+            shouldAutoPlay = false
+            Toast.makeText(this, getString(R.string.selection_metadata_only), Toast.LENGTH_SHORT).show()
             return
         }
-
-        val url = track.streamUrl
-        if (url.isNullOrBlank()) {
-            Toast.makeText(this, getString(R.string.selection_not_playable), Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        isYoutubeMode = false
-        webView.visibility = View.GONE
-        playerView.visibility = View.VISIBLE
 
         val player = exoPlayer ?: return
 
@@ -174,132 +150,45 @@ class PlayerActivity : ComponentActivity() {
 
         player.setMediaItem(mediaItem)
         player.prepare()
-        player.play()
-    }
-
-    private fun loadYoutubeVideo(videoId: String) {
-        val webView = youtubeWebView ?: return
-        val html = """
-            <!doctype html>
-            <html>
-            <body style="margin:0;background:black;">
-                <div id="player"></div>
-                <script>
-                    var tag = document.createElement('script');
-                    tag.src = 'https://www.youtube.com/iframe_api';
-                    var firstScriptTag = document.getElementsByTagName('script')[0];
-                    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-                    var player;
-                    function onYouTubeIframeAPIReady() {
-                        player = new YT.Player('player', {
-                            width: '100%',
-                            height: '220',
-                            videoId: '${videoId}',
-                            playerVars: {
-                                autoplay: 1,
-                                controls: 1,
-                                rel: 0,
-                                modestbranding: 1,
-                                playsinline: 1
-                            },
-                            events: {
-                                'onReady': function(event) {
-                                    event.target.playVideo();
-                                },
-                                'onError': function(event) {
-                                    if (window.AndroidBridge && window.AndroidBridge.onYouTubeError) {
-                                        window.AndroidBridge.onYouTubeError(String(event.data));
-                                    }
-                                }
-                            }
-                        });
-                    }
-                    function togglePlayPause() {
-                        if (!player) return;
-                        var state = player.getPlayerState();
-                        if (state === 1) { player.pauseVideo(); } else { player.playVideo(); }
-                    }
-                    function seekRelative(seconds) {
-                        if (!player) return;
-                        var current = player.getCurrentTime();
-                        player.seekTo(Math.max(0, current + seconds), true);
-                    }
-                    function pausePlayback() {
-                        if (!player) return;
-                        player.pauseVideo();
-                    }
-                </script>
-            </body>
-            </html>
-        """.trimIndent()
-
-        webView.loadDataWithBaseURL("https://www.youtube.com", html, "text/html", "utf-8", null)
-    }
-
-    private fun sendYoutubeCommand(command: String, value: Int? = null) {
-        val webView = youtubeWebView ?: return
-        val js = if (value == null) {
-            "javascript:$command()"
-        } else {
-            "javascript:$command($value)"
-        }
-        webView.evaluateJavascript(js, null)
-    }
-
-    private fun playNextYouTubeCandidate(currentId: String): Boolean {
-        val next = suggestedTracks.firstOrNull {
-            it.source == "youtube" && it.id != currentId && !blockedYoutubeIds.contains(it.id)
-        } ?: return false
-
-        bindHeader(next)
-        playTrack(next)
-        return true
-    }
-
-    private inner class YouTubeEmbedBridge {
-        @JavascriptInterface
-        fun onYouTubeError(errorCode: String) {
-            val failedId = currentTrack?.id ?: return
-            runOnUiThread {
-                blockedYoutubeIds.add(failedId)
-
-                val movedToNext = playNextYouTubeCandidate(failedId)
-                Toast.makeText(
-                    this@PlayerActivity,
-                    if (movedToNext) {
-                        getString(R.string.youtube_embed_retrying, errorCode)
-                    } else {
-                        getString(R.string.youtube_embed_blocked_no_fallback, errorCode)
-                    },
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
+        player.seekTo(startPositionMs.coerceAtLeast(0L))
+        player.playWhenReady = autoplay
+        playbackPosition = startPositionMs.coerceAtLeast(0L)
+        shouldAutoPlay = autoplay
     }
 
     override fun onStop() {
-        if (isYoutubeMode) {
-            sendYoutubeCommand("pausePlayback")
-        } else {
-            exoPlayer?.pause()
+        exoPlayer?.let { player ->
+            playbackPosition = player.currentPosition
+            shouldAutoPlay = player.playWhenReady
+            player.pause()
         }
         super.onStop()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        exoPlayer?.let { player ->
+            playbackPosition = player.currentPosition
+            shouldAutoPlay = player.playWhenReady
+        }
+        currentTrack?.let { outState.putParcelable(STATE_CURRENT_TRACK, it) }
+        outState.putParcelableArrayList(STATE_SUGGESTED_TRACKS, ArrayList(suggestedTracks))
+        outState.putLong(STATE_PLAYBACK_POSITION, playbackPosition)
+        outState.putBoolean(STATE_PLAY_WHEN_READY, shouldAutoPlay)
+        super.onSaveInstanceState(outState)
     }
 
     override fun onDestroy() {
         exoPlayer?.release()
         exoPlayer = null
-        youtubeWebView?.apply {
-            stopLoading()
-            loadUrl("about:blank")
-            destroy()
-        }
-        youtubeWebView = null
         super.onDestroy()
     }
 
     companion object {
         const val EXTRA_SELECTED_TRACK = "extra_selected_track"
         const val EXTRA_SUGGESTED_TRACKS = "extra_suggested_tracks"
+        private const val STATE_CURRENT_TRACK = "state_current_track"
+        private const val STATE_SUGGESTED_TRACKS = "state_suggested_tracks"
+        private const val STATE_PLAYBACK_POSITION = "state_playback_position"
+        private const val STATE_PLAY_WHEN_READY = "state_play_when_ready"
     }
 }

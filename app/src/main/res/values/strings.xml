@@ -8,12 +8,25 @@
     <string name="search_idle">Pronto per la ricerca.</string>
     <string name="search_enter_query">Inserisci una query per iniziare.</string>
     <string name="search_no_results">Nessun risultato trovato.</string>
+    <string name="search_provider_error_only">Nessun risultato disponibile: uno o più provider sono
+        temporaneamente non raggiungibili.</string>
+    <string name="search_provider_disabled_only">Nessun risultato disponibile: almeno un provider
+        opzionale non è configurato.</string>
     <string name="search_results_count">%1$d risultati disponibili. Tocca un brano per aprire il
         player.</string>
-    <string name="search_results_count_with_sources">%1$d risultati: %2$d stream, %3$d YouTube.
-        Tocca un brano per aprire il player.</string>
+    <string name="search_results_count_with_sources">%1$d risultati: %2$d stream, %3$d metadata
+        YouTube.
+        Tocca un brano riproducibile per aprire il player.</string>
+    <string name="search_results_with_provider_warnings">%1$s %2$d provider non sono disponibili
+        ora.</string>
+    <string name="search_results_from_cache">%1$s Risultati serviti dalla cache locale.</string>
     <string name="selection_not_playable">Risultato non riproducibile direttamente nella app.</string>
+    <string name="selection_metadata_only">Questo risultato è disponibile solo come metadata e non
+        può essere riprodotto direttamente.</string>
     <string name="result_artwork">Miniatura risultato</string>
+    <string name="result_available_stream">stream</string>
+    <string name="result_available_metadata">solo metadata</string>
+    <string name="result_subtitle_format">%1$s • %2$s • %3$s • %4$s</string>
     <string name="player_artwork">Copertina del brano</string>
     <string name="player_suggested">Brani suggeriti</string>
     <string name="player_back_10">-10s</string>
@@ -21,8 +34,4 @@
     <string name="player_forward_10">+10s</string>
     <string name="player_title_fallback">Nessun brano selezionato</string>
     <string name="player_subtitle_fallback">Scegli un risultato per iniziare la riproduzione.</string>
-    <string name="youtube_embed_retrying">Video non embeddabile (errore %1$s). Provo un altro
-        risultato YouTube.</string>
-    <string name="youtube_embed_blocked_no_fallback">Video non embeddabile (errore %1$s). In questa
-        ricerca non ci sono altri risultati YouTube validi.</string>
 </resources>

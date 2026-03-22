@@ -42,12 +42,26 @@ class TrackResultsAdapter(
         fun bind(item: TrackSearchResult) {
             title.text = item.title
             val sourceLabel = item.source.uppercase()
-            subtitle.text = "${item.artist} • ${item.album} • $sourceLabel"
+            val availabilityLabel = itemView.context.getString(
+                if (item.playable) {
+                    R.string.result_available_stream
+                } else {
+                    R.string.result_available_metadata
+                }
+            )
+            subtitle.text = itemView.context.getString(
+                R.string.result_subtitle_format,
+                item.artist,
+                item.album,
+                sourceLabel,
+                availabilityLabel
+            )
             artwork.load(item.artworkUrl) {
                 crossfade(true)
                 placeholder(R.drawable.ic_launcher_foreground)
                 error(R.drawable.ic_launcher_foreground)
             }
+            itemView.alpha = if (item.playable) 1f else 0.74f
             itemView.setOnClickListener { onItemClick(item) }
         }
     }

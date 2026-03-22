@@ -5,17 +5,19 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.carbeats.search.SearchRepository
+import com.example.carbeats.search.SearchResponse
 import com.example.carbeats.search.TrackSearchResult
-import kotlin.concurrent.thread
 
 class MainActivity : ComponentActivity() {
     private val searchRepository = SearchRepository.default()
     private val resultsAdapter = TrackResultsAdapter(::openPlayer)
     private var lastResults: List<TrackSearchResult> = emptyList()
+    private var latestSearchToken: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,39 +36,70 @@ class MainActivity : ComponentActivity() {
         resultsRecycler.adapter = resultsAdapter
 
         searchButton.setOnClickListener {
-            val query = searchInput.text?.toString().orEmpty()
+            val query = searchInput.text?.toString().orEmpty().trim()
             if (query.isBlank()) {
+                latestSearchToken += 1
                 statusText.text = getString(R.string.search_enter_query)
                 resultsAdapter.submitList(emptyList())
                 return@setOnClickListener
             }
 
+            val searchToken = ++latestSearchToken
+            searchButton.isEnabled = false
             statusText.text = getString(R.string.search_loading)
 
-            thread {
-                val results = searchRepository.search(query)
+            SearchExecutors.io.execute {
+                val response = searchRepository.searchDetails(query)
                 runOnUiThread {
-                    lastResults = results
-                    resultsAdapter.submitList(results)
-                    statusText.text = if (results.isEmpty()) {
-                        getString(R.string.search_no_results)
-                    } else {
-                        val youtubeCount = results.count { it.source == "youtube" }
-                        val streamCount = results.size - youtubeCount
-                        getString(
-                            R.string.search_results_count_with_sources,
-                            results.size,
-                            streamCount,
-                            youtubeCount
-                        )
+                    if (latestSearchToken != searchToken || isFinishing || isDestroyed) {
+                        return@runOnUiThread
                     }
+
+                    lastResults = response.results
+                    resultsAdapter.submitList(response.results)
+                    searchButton.isEnabled = true
+                    statusText.text = buildStatusMessage(response)
                 }
             }
         }
     }
 
+    private fun buildStatusMessage(response: SearchResponse): String {
+        if (response.results.isEmpty()) {
+            return when {
+                response.hasProviderErrors -> getString(R.string.search_provider_error_only)
+                response.hasDisabledProviders -> getString(R.string.search_provider_disabled_only)
+                else -> getString(R.string.search_no_results)
+            }
+        }
+
+        val youtubeCount = response.results.count { it.source == "youtube" }
+        val streamCount = response.results.size - youtubeCount
+        val baseMessage = getString(
+            R.string.search_results_count_with_sources,
+            response.results.size,
+            streamCount,
+            youtubeCount
+        )
+
+        return when {
+            response.unavailableProviderCount > 0 -> {
+                getString(
+                    R.string.search_results_with_provider_warnings,
+                    baseMessage,
+                    response.unavailableProviderCount
+                )
+            }
+            response.fromCache -> getString(R.string.search_results_from_cache, baseMessage)
+            else -> baseMessage
+        }
+    }
+
     private fun openPlayer(selected: TrackSearchResult) {
-        if (!selected.playable) return
+        if (!selected.playable) {
+            Toast.makeText(this, getString(R.string.selection_metadata_only), Toast.LENGTH_SHORT).show()
+            return
+        }
 
         val playable = ArrayList(lastResults.filter { it.playable })
         if (playable.isEmpty()) return
@@ -76,5 +109,10 @@ class MainActivity : ComponentActivity() {
             putParcelableArrayListExtra(PlayerActivity.EXTRA_SUGGESTED_TRACKS, playable)
         }
         startActivity(intent)
+    }
+
+    override fun onDestroy() {
+        latestSearchToken += 1
+        super.onDestroy()
     }
 }

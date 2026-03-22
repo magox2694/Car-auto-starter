@@ -222,7 +222,7 @@ class PlaybackService : MediaLibraryService() {
         mediaId: String?
     ) {
         val exoPlayer = player ?: return
-        val streamUrl = url ?: return
+        val streamUrl = StreamUrlValidator.normalizeHttpUrl(url) ?: return
 
         val metadata = MediaMetadata.Builder()
             .setTitle(title ?: "Track")
