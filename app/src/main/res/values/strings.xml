@@ -1,27 +1,28 @@
 <resources>
     <string name="app_name">CarBeats</string>
     <string name="car_home_title">CarBeats su Android Auto</string>
-    <string name="phone_companion_text">Companion app CarBeats. Usa questi controlli per testare il
-        player in background anche senza auto.</string>
-    <string name="search_hint">Cerca brano demo (es: Night, Acoustic)</string>
-    <string name="search_and_play">Cerca e riproduci</string>
+    <string name="phone_companion_text">Cerca un brano e aprilo nel player interno.</string>
+    <string name="search_hint">Cerca brano o artista</string>
+    <string name="search_action">Cerca</string>
     <string name="search_loading">Ricerca in corso...</string>
+    <string name="search_idle">Pronto per la ricerca.</string>
+    <string name="search_enter_query">Inserisci una query per iniziare.</string>
     <string name="search_no_results">Nessun risultato trovato.</string>
-    <string name="select_result_hint">Numero risultato da riprodurre (es: 1)</string>
-    <string name="play_selected_result">Riproduci risultato selezionato</string>
-    <string name="invalid_selection">Indice non valido. Inserisci un numero presente nei risultati.</string>
-    <string name="selection_not_playable">Risultato non riproducibile in questa demo.</string>
-    <string name="play_playlist_demo">Riproduci playlist demo</string>
-    <string name="play_sample">Riproduci sample</string>
-    <string name="previous_track">Brano precedente</string>
-    <string name="next_track">Brano successivo</string>
-    <string name="pause_audio">Pausa</string>
-    <string name="resume_audio">Riprendi</string>
-    <string name="stop_audio">Stop</string>
-    <string name="status_ready">Stato player: pronto.</string>
-    <string name="status_playing">Stato player: riproduzione.</string>
-    <string name="status_playing_selected">Stato player: riproduzione del risultato selezionato.</string>
-    <string name="status_paused">Stato player: in pausa.</string>
-    <string name="status_stopped">Stato player: fermo.</string>
-    <string name="status_navigating">Stato player: cambio brano.</string>
+    <string name="search_results_count">%1$d risultati disponibili. Tocca un brano per aprire il
+        player.</string>
+    <string name="search_results_count_with_sources">%1$d risultati: %2$d stream, %3$d YouTube.
+        Tocca un brano per aprire il player.</string>
+    <string name="selection_not_playable">Risultato non riproducibile direttamente nella app.</string>
+    <string name="result_artwork">Miniatura risultato</string>
+    <string name="player_artwork">Copertina del brano</string>
+    <string name="player_suggested">Brani suggeriti</string>
+    <string name="player_back_10">-10s</string>
+    <string name="player_pause">Play/Pausa</string>
+    <string name="player_forward_10">+10s</string>
+    <string name="player_title_fallback">Nessun brano selezionato</string>
+    <string name="player_subtitle_fallback">Scegli un risultato per iniziare la riproduzione.</string>
+    <string name="youtube_embed_retrying">Video non embeddabile (errore %1$s). Provo un altro
+        risultato YouTube.</string>
+    <string name="youtube_embed_blocked_no_fallback">Video non embeddabile (errore %1$s). In questa
+        ricerca non ci sono altri risultati YouTube validi.</string>
 </resources>

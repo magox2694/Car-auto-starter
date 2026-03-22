@@ -14,7 +14,12 @@ class YouTubeMetadataProvider : TrackSearchProvider {
         val encodedQuery = URLEncoder.encode(query, Charsets.UTF_8.name())
         val endpoint =
             "https://www.googleapis.com/youtube/v3/search" +
-                "?part=snippet&type=video&maxResults=5&q=$encodedQuery&key=$apiKey"
+                "?part=snippet&type=video" +
+                "&videoEmbeddable=true" +
+                "&videoSyndicated=true" +
+                "&maxResults=8" +
+                "&q=$encodedQuery" +
+                "&key=$apiKey"
 
         val connection = (URL(endpoint).openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"
@@ -40,6 +45,10 @@ class YouTubeMetadataProvider : TrackSearchProvider {
                 val snippet = item.optJSONObject("snippet") ?: continue
                 val title = snippet.optString("title", "Unknown")
                 val channel = snippet.optString("channelTitle", "YouTube")
+                val thumbnails = snippet.optJSONObject("thumbnails")
+                val artworkUrl =
+                    thumbnails?.optJSONObject("medium")?.optString("url")
+                        ?: thumbnails?.optJSONObject("default")?.optString("url")
 
                 results.add(
                     TrackSearchResult(
@@ -48,7 +57,8 @@ class YouTubeMetadataProvider : TrackSearchProvider {
                         artist = channel,
                         album = "YouTube",
                         source = "youtube",
-                        playable = false
+                        playable = true,
+                        artworkUrl = artworkUrl
                     )
                 )
             }

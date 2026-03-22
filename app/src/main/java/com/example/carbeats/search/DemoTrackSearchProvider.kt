@@ -11,7 +11,8 @@ class DemoTrackSearchProvider : TrackSearchProvider {
                 artist = it.artist,
                 album = it.album,
                 source = "demo",
-                playable = true
+                playable = true,
+                streamUrl = it.url
             )
         }
     }

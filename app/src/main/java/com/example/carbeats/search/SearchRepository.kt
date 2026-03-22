@@ -6,23 +6,38 @@ class SearchRepository(
     fun search(query: String): List<TrackSearchResult> {
         if (query.isBlank()) return emptyList()
 
-        return providers
-            .flatMap { provider ->
-                try {
-                    provider.search(query)
-                } catch (_: Exception) {
-                    emptyList()
+        val providerResults = providers.map { provider ->
+            try {
+                provider.search(query)
+            } catch (_: Exception) {
+                emptyList()
+            }
+        }
+
+        val merged = mutableListOf<TrackSearchResult>()
+        var round = 0
+        while (merged.size < 12) {
+            var addedInRound = false
+            providerResults.forEach { results ->
+                if (round < results.size) {
+                    merged.add(results[round])
+                    addedInRound = true
                 }
             }
+            if (!addedInRound) break
+            round++
+        }
+
+        return merged
             .distinctBy { "${it.source}:${it.id}" }
-            .take(10)
+            .take(12)
     }
 
     companion object {
         fun default(): SearchRepository {
             return SearchRepository(
                 providers = listOf(
-                    DemoTrackSearchProvider(),
+                    ItunesPreviewSearchProvider(),
                     YouTubeMetadataProvider()
                 )
             )

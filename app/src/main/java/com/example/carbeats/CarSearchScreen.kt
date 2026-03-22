@@ -51,10 +51,25 @@ class CarSearchScreen(carContext: CarContext) : Screen(carContext) {
                         .setTitle(item.title)
                         .addText("${item.artist} - ${item.album}")
                         .setOnClickListener {
-                            if (item.playable && item.source == "demo") {
+                            val description = if (item.playable) {
+                                "Riproduzione avviata: ${item.artist} (${item.source})."
+                            } else {
+                                "Risultato informativo (${item.source}): il brano non e disponibile per la riproduzione diretta."
+                            }
+
+                            if (item.playable) {
                                 val playIntent = Intent(carContext, PlaybackService::class.java).apply {
-                                    action = PlaybackService.ACTION_PLAY_MEDIA_ID
-                                    putExtra(PlaybackService.EXTRA_MEDIA_ID, item.id)
+                                    if (!item.streamUrl.isNullOrBlank()) {
+                                        action = PlaybackService.ACTION_PLAY_STREAM
+                                        putExtra(PlaybackService.EXTRA_STREAM_URL, item.streamUrl)
+                                        putExtra(PlaybackService.EXTRA_TITLE, item.title)
+                                        putExtra(PlaybackService.EXTRA_ARTIST, item.artist)
+                                        putExtra(PlaybackService.EXTRA_ALBUM, item.album)
+                                        putExtra(PlaybackService.EXTRA_STREAM_MEDIA_ID, item.id)
+                                    } else {
+                                        action = PlaybackService.ACTION_PLAY_MEDIA_ID
+                                        putExtra(PlaybackService.EXTRA_MEDIA_ID, item.id)
+                                    }
                                 }
                                 carContext.startService(playIntent)
                             }
@@ -62,7 +77,7 @@ class CarSearchScreen(carContext: CarContext) : Screen(carContext) {
                                 PlaceDetailScreen(
                                     carContext = carContext,
                                     title = item.title,
-                                    description = "Riproduzione avviata: ${item.artist} (${item.source})."
+                                    description = description
                                 )
                             )
                         }

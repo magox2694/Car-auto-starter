@@ -19,7 +19,7 @@ class HomeScreen(carContext: CarContext) : Screen(carContext) {
             .addItem(
                 Row.Builder()
                     .setTitle("Ricerca rapida in auto")
-                    .addText("Apri risultati demo per una query predefinita")
+                    .addText("Apri risultati rapidi per una query predefinita")
                     .build()
             )
             .addItem(
@@ -36,7 +36,7 @@ class HomeScreen(carContext: CarContext) : Screen(carContext) {
             listBuilder.addItem(
                 Row.Builder()
                     .setTitle("Cerca: $query")
-                    .addText("Mostra risultati audio demo")
+                    .addText("Mostra risultati audio")
                     .setOnClickListener {
                         screenManager.push(CarSearchResultsScreen(carContext, query))
                     }
