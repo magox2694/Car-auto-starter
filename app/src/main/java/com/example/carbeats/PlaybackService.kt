@@ -5,14 +5,20 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
+import com.google.common.collect.ImmutableList
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 
 private typealias LibrarySession = MediaLibraryService.MediaLibrarySession
 private typealias LibrarySessionBuilder = MediaLibraryService.MediaLibrarySession.Builder
 private typealias LibrarySessionCallback = MediaLibraryService.MediaLibrarySession.Callback
 
 class PlaybackService : MediaLibraryService() {
+
+    private val rootItemId = "root"
 
     private var player: ExoPlayer? = null
     private var mediaLibrarySession: LibrarySession? = null
@@ -29,7 +35,98 @@ class PlaybackService : MediaLibraryService() {
         mediaLibrarySession = LibrarySessionBuilder(
             this,
             exoPlayer,
-            object : LibrarySessionCallback {}
+            object : LibrarySessionCallback {
+                override fun onGetLibraryRoot(
+                    session: LibrarySession,
+                    browser: MediaSession.ControllerInfo,
+                    params: LibraryParams?
+                ): ListenableFuture<LibraryResult<MediaItem>> {
+                    val root = MediaItem.Builder()
+                        .setMediaId(rootItemId)
+                        .setMediaMetadata(
+                            MediaMetadata.Builder()
+                                .setTitle("CarBeats")
+                                .setIsBrowsable(true)
+                                .setIsPlayable(false)
+                                .build()
+                        )
+                        .build()
+
+                    return Futures.immediateFuture(LibraryResult.ofItem(root, params))
+                }
+
+                override fun onGetChildren(
+                    session: LibrarySession,
+                    browser: MediaSession.ControllerInfo,
+                    parentId: String,
+                    page: Int,
+                    pageSize: Int,
+                    params: LibraryParams?
+                ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
+                    if (parentId != rootItemId) {
+                        return Futures.immediateFuture(
+                            LibraryResult.ofError(LibraryResult.RESULT_ERROR_BAD_VALUE)
+                        )
+                    }
+
+                    val allItems = AudioCatalog.allTracks().map { track ->
+                        MediaItem.Builder()
+                            .setMediaId(track.mediaId)
+                            .setUri(track.url)
+                            .setMediaMetadata(
+                                MediaMetadata.Builder()
+                                    .setTitle(track.title)
+                                    .setArtist(track.artist)
+                                    .setAlbumTitle(track.album)
+                                    .setIsBrowsable(false)
+                                    .setIsPlayable(true)
+                                    .build()
+                            )
+                            .build()
+                    }
+
+                    val safePageSize = if (pageSize <= 0) allItems.size else pageSize
+                    val fromIndex = page * safePageSize
+                    if (fromIndex >= allItems.size) {
+                        return Futures.immediateFuture(
+                            LibraryResult.ofItemList(ImmutableList.of(), params)
+                        )
+                    }
+
+                    val toIndex = minOf(fromIndex + safePageSize, allItems.size)
+                    val slice = allItems.subList(fromIndex, toIndex)
+                    return Futures.immediateFuture(
+                        LibraryResult.ofItemList(ImmutableList.copyOf(slice), params)
+                    )
+                }
+
+                override fun onGetItem(
+                    session: LibrarySession,
+                    browser: MediaSession.ControllerInfo,
+                    mediaId: String
+                ): ListenableFuture<LibraryResult<MediaItem>> {
+                    val track = AudioCatalog.allTracks().firstOrNull { it.mediaId == mediaId }
+                        ?: return Futures.immediateFuture(
+                            LibraryResult.ofError(LibraryResult.RESULT_ERROR_BAD_VALUE)
+                        )
+
+                    val item = MediaItem.Builder()
+                        .setMediaId(track.mediaId)
+                        .setUri(track.url)
+                        .setMediaMetadata(
+                            MediaMetadata.Builder()
+                                .setTitle(track.title)
+                                .setArtist(track.artist)
+                                .setAlbumTitle(track.album)
+                                .setIsBrowsable(false)
+                                .setIsPlayable(true)
+                                .build()
+                        )
+                        .build()
+
+                    return Futures.immediateFuture(LibraryResult.ofItem(item, null))
+                }
+            }
         )
             .setId("carbeats-session")
             .build()
