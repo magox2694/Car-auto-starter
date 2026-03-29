@@ -30,6 +30,7 @@
         <service
             android:name=".MyCarAppService"
             android:exported="true"
+            android:permission="androidx.car.app.ACCESS_SURFACE"
             android:label="@string/app_name"
             android:icon="@mipmap/ic_launcher">
             <intent-filter>
